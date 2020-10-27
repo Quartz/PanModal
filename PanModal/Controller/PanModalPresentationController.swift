@@ -384,7 +384,7 @@ private extension PanModalPresentationController {
             // (rotations & size changes cause positioning to be out of sync)
             let yPosition = panFrame.origin.y - panFrame.height + frame.height
             presentedView.frame.origin.y = max(yPosition, anchoredYPosition)
-            shadowView?.frame.origin.y = max(yPosition, anchoredYPosition)
+            shadowView?.frame.origin.y = max(yPosition, anchoredYPosition) + (presentable?.cornerRadius ?? 0)
         }
         panContainerView.frame.origin.x = frame.origin.x
         presentedViewController.view.frame = CGRect(origin: .zero, size: adjustedSize)
@@ -662,7 +662,7 @@ private extension PanModalPresentationController {
      */
     func adjust(toYPosition yPos: CGFloat) {
         presentedView.frame.origin.y = max(yPos, anchoredYPosition)
-        shadowView?.frame.origin.y = max(yPos, anchoredYPosition)
+        shadowView?.frame.origin.y = max(yPos, anchoredYPosition) + (presentable?.cornerRadius ?? 0)
         
         guard presentedView.frame.origin.y > shortFormYPosition else {
             backgroundView.dimState = .max
@@ -813,7 +813,7 @@ private extension PanModalPresentationController {
              as if we're transferring the scrollView drag momentum to the entire view
              */
             presentedView.frame.origin.y = longFormYPosition - yOffset
-            shadowView?.frame.origin.y = longFormYPosition - yOffset
+            shadowView?.frame.origin.y = longFormYPosition - yOffset + (presentable?.cornerRadius ?? 0)
         } else {
             scrollViewYOffset = 0
             snap(toYPosition: longFormYPosition)
