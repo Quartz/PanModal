@@ -39,6 +39,10 @@ public extension PanModalPresentable where Self: UIViewController {
         return 0.8
     }
 
+    var shadowColor: CGColor? { nil }
+
+    var shadowRadius: CGFloat? { nil }
+
     var transitionDuration: Double {
         return PanModalAnimator.Constants.defaultTransitionDuration
     }
@@ -82,6 +86,10 @@ public extension PanModalPresentable where Self: UIViewController {
     }
 
     var isUserInteractionEnabled: Bool {
+        return true
+    }
+
+    var isBackgroundUserInteractionEnabled: Bool {
         return true
     }
 

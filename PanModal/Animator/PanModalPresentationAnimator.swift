@@ -89,8 +89,10 @@ public class PanModalPresentationAnimator: NSObject {
             feedbackGenerator?.selectionChanged()
         }
 
+        transitionContext.containerView.layoutIfNeeded()
         PanModalAnimator.animate({
             panView.frame.origin.y = yPos
+            transitionContext.containerView.layoutIfNeeded()
         }, config: presentable) { [weak self] didComplete in
             // Calls viewDidAppear and viewDidDisappear
             fromVC.endAppearanceTransition()

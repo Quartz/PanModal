@@ -111,9 +111,13 @@ open class PanModalPresentationController: UIPresentationController {
         } else {
             view = DimmedView()
         }
-        view.didTap = { [weak self] _ in
-            if self?.presentable?.allowsTapToDismiss == true {
-                self?.presentedViewController.dismiss(animated: true)
+        if presentable?.isBackgroundUserInteractionEnabled == false {
+            view.isUserInteractionEnabled = false
+        } else {
+            view.didTap = { [weak self] _ in
+                if self?.presentable?.allowsTapToDismiss == true {
+                    self?.presentedViewController.dismiss(animated: true)
+                }
             }
         }
         return view
@@ -138,6 +142,8 @@ open class PanModalPresentationController: UIPresentationController {
         view.layer.cornerRadius = Constants.dragIndicatorSize.height / 2.0
         return view
     }()
+
+    private weak var shadowView: UIView?
 
     /**
      Override presented view to return the pan container wrapper
@@ -355,6 +361,8 @@ private extension PanModalPresentationController {
             addRoundedCorners(to: presentedView)
         }
 
+        addShadow(to: containerView, for: presentedView)
+
         setNeedsLayoutUpdate()
         adjustPanContainerBackgroundColor()
     }
@@ -376,6 +384,7 @@ private extension PanModalPresentationController {
             // (rotations & size changes cause positioning to be out of sync)
             let yPosition = panFrame.origin.y - panFrame.height + frame.height
             presentedView.frame.origin.y = max(yPosition, anchoredYPosition)
+            shadowView?.frame.origin.y = max(yPosition, anchoredYPosition)
         }
         panContainerView.frame.origin.x = frame.origin.x
         presentedViewController.view.frame = CGRect(origin: .zero, size: adjustedSize)
@@ -653,6 +662,7 @@ private extension PanModalPresentationController {
      */
     func adjust(toYPosition yPos: CGFloat) {
         presentedView.frame.origin.y = max(yPos, anchoredYPosition)
+        shadowView?.frame.origin.y = max(yPos, anchoredYPosition)
         
         guard presentedView.frame.origin.y > shortFormYPosition else {
             backgroundView.dimState = .max
@@ -803,6 +813,7 @@ private extension PanModalPresentationController {
              as if we're transferring the scrollView drag momentum to the entire view
              */
             presentedView.frame.origin.y = longFormYPosition - yOffset
+            shadowView?.frame.origin.y = longFormYPosition - yOffset
         } else {
             scrollViewYOffset = 0
             snap(toYPosition: longFormYPosition)
@@ -861,6 +872,36 @@ private extension PanModalPresentationController {
         // Improve performance by rasterizing the layer
         view.layer.shouldRasterize = true
         view.layer.rasterizationScale = UIScreen.main.scale
+    }
+
+    func addShadow(to view: UIView, for presentedView: UIView) {
+        guard let shadowRadius = presentable?.shadowRadius, let shadowColor = presentable?.shadowColor else {
+            return
+        }
+
+        let radius = presentable?.cornerRadius ?? 0
+        let path = UIBezierPath(roundedRect: presentedView.bounds.insetBy(dx: -shadowRadius / 2, dy: 0),
+                                byRoundingCorners: [.topLeft, .topRight],
+                                cornerRadii: CGSize(width: radius, height: radius))
+
+        let shadowView = UIView()
+        shadowView.isUserInteractionEnabled = false
+        view.insertSubview(shadowView, aboveSubview: backgroundView)
+        shadowView.clipsToBounds = false
+        shadowView.layer.backgroundColor = shadowColor
+        shadowView.layer.shadowPath = path.cgPath
+        shadowView.layer.shadowRadius = shadowRadius
+        shadowView.layer.shadowColor = shadowColor
+        shadowView.layer.shadowOpacity = 1
+        shadowView.translatesAutoresizingMaskIntoConstraints = false
+        shadowView.topAnchor.constraint(equalTo: presentedView.topAnchor, constant: radius).isActive = true
+        shadowView.leadingAnchor.constraint(equalTo: presentedView.leadingAnchor).isActive = true
+        shadowView.trailingAnchor.constraint(equalTo: presentedView.trailingAnchor).isActive = true
+        shadowView.bottomAnchor.constraint(equalTo: presentedView.bottomAnchor).isActive = true
+        // Improve performance by rasterizing the layer
+        shadowView.layer.shouldRasterize = true
+        shadowView.layer.rasterizationScale = UIScreen.main.scale
+        self.shadowView = shadowView
     }
 
     /**

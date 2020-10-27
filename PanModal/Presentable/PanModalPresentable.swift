@@ -70,6 +70,10 @@ public protocol PanModalPresentable: AnyObject {
      */
     var springDamping: CGFloat { get }
 
+    var shadowColor: CGColor? { get }
+
+    var shadowRadius: CGFloat? { get }
+
     /**
      The transitionDuration value is used to set the speed of animation during a transition,
      including initial presentation.
@@ -150,6 +154,8 @@ public protocol PanModalPresentable: AnyObject {
      Default is true.
     */
     var isUserInteractionEnabled: Bool { get }
+
+    var isBackgroundUserInteractionEnabled: Bool { get }
 
     /**
      A flag to determine if haptic feedback should be enabled during presentation.
