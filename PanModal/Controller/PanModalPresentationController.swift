@@ -501,6 +501,9 @@ private extension PanModalPresentationController {
              If presentedView is translated above the longForm threshold, treat as transition
              */
             if presentedView.frame.origin.y == anchoredYPosition && extendsPanScrolling {
+                PanModalAnimator.animate({ [weak self] in
+                    self?.presentedView.layer.mask = nil
+                }, config: presentable)
                 presentable?.willTransition(to: .longForm)
             }
 
@@ -648,6 +651,15 @@ private extension PanModalPresentationController {
         PanModalAnimator.animate({ [weak self] in
             self?.adjust(toYPosition: yPos)
             self?.isPresentedViewAnimating = true
+            self?.shadowView?.layer.shadowOpacity = yPos == self?.shortFormYPosition ? 1 : 0
+            if self?.presentable?.shouldRoundTopCorners == true,
+               let presentedView = self?.presentedView {
+                if yPos == self?.shortFormYPosition {
+                    self?.addRoundedCorners(to: presentedView)
+                } else {
+                    self?.presentedView.layer.mask = nil
+                }
+            }
         }, config: presentable) { [weak self] didComplete in
             self?.isPresentedViewAnimating = !didComplete
         }
@@ -659,9 +671,15 @@ private extension PanModalPresentationController {
     func adjust(toYPosition yPos: CGFloat) {
         presentedView.frame.origin.y = max(yPos, anchoredYPosition)
         shadowView?.frame.origin.y = max(yPos, anchoredYPosition) + (presentable?.cornerRadius ?? 0)
-        
+
+        if presentedView.frame.origin.y > longFormYPosition {
+            let yDisplacementFromLongForm = presentedView.frame.origin.y - longFormYPosition
+            shadowView?.layer.shadowOpacity = Float(yDisplacementFromLongForm / presentedView.frame.height * 1.7)
+        }
+
         guard presentedView.frame.origin.y > shortFormYPosition else {
             backgroundView.dimState = .max
+            shadowView?.alpha = 1
             return
         }
 
