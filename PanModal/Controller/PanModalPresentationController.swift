@@ -107,17 +107,13 @@ open class PanModalPresentationController: UIPresentationController {
     private lazy var backgroundView: DimmedView = {
         let view: DimmedView
         if let color = presentable?.panModalBackgroundColor {
-            view = DimmedView(dimColor: color)
+            view = DimmedView(dimColor: color, passthroughViews: { [weak presentable] in presentable?.passthroughViews } )
         } else {
-            view = DimmedView()
+            view = DimmedView(passthroughViews: { [weak presentable] in presentable?.passthroughViews } )
         }
-        if presentable?.isBackgroundUserInteractionEnabled == false {
-            view.isUserInteractionEnabled = false
-        } else {
-            view.didTap = { [weak self] _ in
-                if self?.presentable?.allowsTapToDismiss == true {
-                    self?.presentedViewController.dismiss(animated: true)
-                }
+        view.didTap = { [weak self] _ in
+            if self?.presentable?.allowsTapToDismiss == true {
+                self?.presentedViewController.dismiss(animated: true)
             }
         }
         return view

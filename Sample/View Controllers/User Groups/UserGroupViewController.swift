@@ -88,6 +88,9 @@ class UserGroupViewController: UITableViewController, PanModalPresentable {
     }
 
     // MARK: - Pan Modal Presentable
+    var passthroughViews: [UIView]? {
+        [presentingViewController!.view]
+    }
 
     var panScrollable: UIScrollView? {
         return tableView

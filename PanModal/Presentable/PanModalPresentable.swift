@@ -29,6 +29,11 @@ public protocol PanModalPresentable: AnyObject {
     var panScrollable: UIScrollView? { get }
 
     /**
+     Gestures on the presentation container view will be passed through to these views.
+     */
+    var passthroughViews: [UIView]? { get }
+
+    /**
      The offset between the top of the screen and the top of the pan modal container view.
 
      Default value is the topLayoutGuide.length + 21.0.
@@ -154,8 +159,6 @@ public protocol PanModalPresentable: AnyObject {
      Default is true.
     */
     var isUserInteractionEnabled: Bool { get }
-
-    var isBackgroundUserInteractionEnabled: Bool { get }
 
     /**
      A flag to determine if haptic feedback should be enabled during presentation.

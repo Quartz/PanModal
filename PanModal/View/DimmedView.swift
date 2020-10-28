@@ -53,9 +53,15 @@ public class DimmedView: UIView {
         return UITapGestureRecognizer(target: self, action: #selector(didTapView))
     }()
 
+    private let passthroughViews: (() -> [UIView]?)?
+
     // MARK: - Initializers
 
-    init(dimColor: UIColor = UIColor.black.withAlphaComponent(0.7)) {
+    init(
+        dimColor: UIColor = UIColor.black.withAlphaComponent(0.7),
+        passthroughViews: (() -> [UIView]?)? = nil
+    ) {
+        self.passthroughViews = passthroughViews
         super.init(frame: .zero)
         alpha = 0.0
         backgroundColor = dimColor
@@ -70,6 +76,18 @@ public class DimmedView: UIView {
 
     @objc private func didTapView() {
         didTap?(tapGesture)
+    }
+
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        if view == self {
+            for passthrough in passthroughViews?() ?? [] {
+                if let hit = passthrough.hitTest(convert(point, to: passthrough), with: event) {
+                    return hit
+                }
+            }
+        }
+        return view
     }
 
 }
