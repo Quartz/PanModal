@@ -39,26 +39,13 @@ extension UIViewController: PanModalPresenter {
 
      - Note: sourceView & sourceRect are only required for presentation on an iPad.
      */
-    public func presentPanModal(_ viewControllerToPresent: PanModalPresentable.LayoutType,
-                                sourceView: UIView? = nil,
-                                sourceRect: CGRect = .zero,
-                                completion: (() -> Void)? = nil) {
-
-        /**
-         Here, we deliberately do not check for size classes. More info in `PanModalPresentationDelegate`
-         */
-
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            viewControllerToPresent.modalPresentationStyle = .popover
-            viewControllerToPresent.popoverPresentationController?.sourceRect = sourceRect
-            viewControllerToPresent.popoverPresentationController?.sourceView = sourceView ?? view
-            viewControllerToPresent.popoverPresentationController?.delegate = PanModalPresentationDelegate.default
-        } else {
-            viewControllerToPresent.modalPresentationStyle = .custom
-            viewControllerToPresent.modalPresentationCapturesStatusBarAppearance = true
-            viewControllerToPresent.transitioningDelegate = PanModalPresentationDelegate.default
-        }
-
+    public func presentPanModal(
+			_ viewControllerToPresent: PanModalPresentable.LayoutType,
+			completion: (() -> Void)? = nil
+		) {
+				viewControllerToPresent.modalPresentationStyle = .custom
+				viewControllerToPresent.modalPresentationCapturesStatusBarAppearance = true
+				viewControllerToPresent.transitioningDelegate = PanModalPresentationDelegate.default
         present(viewControllerToPresent, animated: true, completion: completion)
     }
 
