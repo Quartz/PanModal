@@ -221,7 +221,7 @@ open class PanModalPresentationController: UIPresentationController {
 
     override public func dismissalTransitionDidEnd(_ completed: Bool) {
         if !completed { return }
-        
+
         presentable?.panModalDidDismiss()
     }
 
@@ -241,6 +241,7 @@ open class PanModalPresentationController: UIPresentationController {
             if presentable.shouldRoundTopCorners {
                 self.addRoundedCorners(to: self.presentedView)
             }
+            self.adjustShadow()
         })
     }
 
@@ -374,7 +375,7 @@ private extension PanModalPresentationController {
         let adjustedSize = CGSize(width: frame.size.width, height: frame.size.height - anchoredYPosition)
         let panFrame = panContainerView.frame
         panContainerView.frame.size = frame.size
-        
+
         if ![shortFormYPosition, longFormYPosition].contains(panFrame.origin.y) {
             // if the container is already in the correct position, no need to adjust positioning
             // (rotations & size changes cause positioning to be out of sync)
@@ -501,9 +502,12 @@ private extension PanModalPresentationController {
              If presentedView is translated above the longForm threshold, treat as transition
              */
             if presentedView.frame.origin.y == anchoredYPosition && extendsPanScrolling {
-                PanModalAnimator.animate({ [weak self] in
-                    self?.presentedView.layer.mask = nil
-                }, config: presentable)
+                if self.presentable?.shouldRoundTopCorners == true {
+                    PanModalAnimator.animate({
+                        self.addRoundedCorners(to: self.presentedView)
+                        self.adjustShadow()
+                    }, config: presentable)
+                }
                 presentable?.willTransition(to: .longForm)
             }
 
@@ -651,15 +655,11 @@ private extension PanModalPresentationController {
         PanModalAnimator.animate({ [weak self] in
             self?.adjust(toYPosition: yPos)
             self?.isPresentedViewAnimating = true
-            self?.shadowView?.layer.shadowOpacity = yPos == self?.shortFormYPosition ? 1 : 0
             if self?.presentable?.shouldRoundTopCorners == true,
                let presentedView = self?.presentedView {
-                if yPos == self?.shortFormYPosition {
-                    self?.addRoundedCorners(to: presentedView)
-                } else {
-                    self?.presentedView.layer.mask = nil
-                }
+                   self?.addRoundedCorners(to: presentedView)
             }
+            self?.adjustShadow()
         }, config: presentable) { [weak self] didComplete in
             self?.isPresentedViewAnimating = !didComplete
         }
@@ -916,6 +916,20 @@ private extension PanModalPresentationController {
         shadowView.layer.shouldRasterize = true
         shadowView.layer.rasterizationScale = UIScreen.main.scale
         self.shadowView = shadowView
+    }
+
+    func adjustShadow() {
+        guard let shadowRadius = presentable?.shadowRadius, let shadowColor = presentable?.shadowColor else {
+            return
+        }
+        let radius = presentable?.cornerRadius ?? 0
+        let path = UIBezierPath(roundedRect: presentedView.bounds.insetBy(dx: -shadowRadius / 2, dy: 0),
+                                byRoundingCorners: [.topLeft, .topRight],
+                                cornerRadii: CGSize(width: radius, height: radius))
+        shadowView?.layer.backgroundColor = shadowColor
+        shadowView?.layer.shadowPath = path.cgPath
+        shadowView?.layer.shadowRadius = shadowRadius
+        shadowView?.layer.shadowColor = shadowColor
     }
 
     /**
